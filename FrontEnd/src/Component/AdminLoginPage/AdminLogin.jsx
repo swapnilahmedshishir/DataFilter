@@ -18,7 +18,7 @@ const AdminLogin = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
     axios
-      .post(`${state.port}/api/admin/adminlogin`, values, console.log(values))
+      .post(`${state.port}/api/admin/adminlogin`, values)
       .then((result) => {
         if (result.data.loginStatus) {
           localStorage.setItem("valid", true);

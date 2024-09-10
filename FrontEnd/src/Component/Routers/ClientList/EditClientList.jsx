@@ -1,107 +1,124 @@
 import { Editor } from "@tinymce/tinymce-react";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useFormik } from "formik";
 import { useNavigate, useParams } from "react-router";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { IoStarSharp } from "react-icons/io5";
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { Link } from "react-router-dom";
-import { Country, State, City } from "country-state-city";
+import { AppContext } from "../../../Dashbord/SmallComponent/AppContext";
 
 const EditClinetList = () => {
+  const { state } = useContext(AppContext);
   // Router
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // state
-  const [errorMessage, setErrorMessage] = useState(null);
+  //state
   const [clientInfo, setClientInfo] = useState({});
-  const [ClientCatagoryList, setClientCatagoryList] = useState([]);
-  const [countries, setCountries] = useState([]);
-  const [countryCode, setCountryCode] = useState("");
-  const [states, setStates] = useState([]);
-  const [cities, setCities] = useState([]);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [divisions, setDivisions] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [upazillas, setUpazillas] = useState([]);
+  const [error, setError] = useState(null);
 
-  // Event handle method
-  const handleCountryChange = (countryCode) => {
-    const countryStates = State.getStatesOfCountry(countryCode);
-    setCountryCode(countryCode);
-    setStates(countryStates);
+  // Fetch divisions from API using fetch
+  const fetchDivisions = async (url) => {
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      setDivisions(data.data);
+    } catch (error) {
+      setError(error.message);
+    }
   };
 
-  const handleStateChange = (stateCode) => {
-    const stateCities = City.getCitiesOfState(countryCode, stateCode);
-    setCities(stateCities);
+  useEffect(() => {
+    const endPoint = "https://bdapis.com/api/v1.2/divisions";
+    fetchDivisions(endPoint);
+  }, []);
+
+  // Fetch districts based on selected division using fetch
+  const handleDivisionChange = async (divisionName) => {
+    try {
+      const res = await fetch(
+        `https://bdapis.com/api/v1.2/division/${divisionName}`
+      );
+      const data = await res.json();
+      setDistricts(data.data);
+      setUpazillas([]); // Clear upazillas when division changes
+    } catch (error) {
+      setError(error.message);
+    }
   };
+
+  // Fetch upazillas based on selected district using fetch
+  const handleDistrictChange = async (districtName) => {
+    try {
+      const res = await fetch(
+        `https://bdapis.com/api/v1.2/district/${districtName}`
+      );
+      const data = await res.json();
+      setUpazillas(data.data.upazillas);
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
   // fetch data
   useEffect(() => {
     axios
-      .get(`https://api.tojoglobal.com/api/admin/clientlist/${id}`)
+      .get(`${state.port}/api/admin/clientlist/${id}`)
       .then((result) => {
         if (result.data.Status) {
           setClientInfo({
             ...clientInfo,
-            clientName: result.data.Result[0].clientName,
-            clientmobile: result.data.Result[0].clientmobile,
-            clientemail: result.data.Result[0].clientemail,
+            division: result.data.Result[0].divisionName,
+            district: result.data.Result[0].districtName,
+            upazilla: result.data.Result[0].upazillaName,
+            unNameEn: result.data.Result[0].unNameEn,
+            unNameBn: result.data.Result[0].unNameBn,
+            unLinkOne: result.data.Result[0].unLinkOne,
+            unLinkTwo: result.data.Result[0].unLinkTwo,
+            upSecretaryName: result.data.Result[0].upSecretaryName,
+            UpEmail: result.data.Result[0].UpEmail,
+            upContactNumber: result.data.Result[0].upContactNumber,
+            upWhatsappNumber: result.data.Result[0].upWhatsappNumber,
             gender: result.data.Result[0].gender,
-            clientCategory: result.data.Result[0].clientCategory,
-            clientCity: result.data.Result[0].clientCity,
-            clientCountryCode: result.data.Result[0].clientCountryCode,
-            clientStateCode: result.data.Result[0].clientStateCode,
-            clientAddress: result.data.Result[0].clientAddress,
-            note: result.data.Result[0].note,
+            unionInfo: result.data.Result[0].unionInfo,
           });
         } else {
           alert(result.data.Error);
         }
       })
       .catch((err) => setErrorMessage(err));
-  }, [id]);
+  }, [state.port, id]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const clientCatagoryListResponse = await axios.get(
-          "https://api.tojoglobal.com/api/admin/clientCatagoryList"
-        );
-        setClientCatagoryList(
-          clientCatagoryListResponse.data.Status
-            ? clientCatagoryListResponse.data.Result
-            : []
-        );
-
-        setCountries(Country.getAllCountries());
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setErrorMessage(`${error}`);
-      }
-    };
-
-    fetchData();
-  }, []);
+  console.log(clientInfo);
 
   // use fromik method
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      clientName: clientInfo.clientName || "",
-      clientmobile: clientInfo.clientmobile || "",
-      clientemail: clientInfo.clientemail || "",
+      division: clientInfo.division || "",
+      district: clientInfo.district || "",
+      upazilla: clientInfo.upazilla || "",
+      unNameEn: clientInfo.unNameEn || "",
+      unNameBn: clientInfo.unNameBn || "",
+      unLinkOne: clientInfo.unLinkOne || "",
+      unLinkTwo: clientInfo.unLinkTwo || "",
+      upSecretaryName: clientInfo.upSecretaryName || "",
+      UpEmail: clientInfo.UpEmail || "",
+      upContactNumber: clientInfo.upContactNumber || "",
+      upWhatsappNumber: clientInfo.upWhatsappNumber || "",
       gender: clientInfo.gender || "",
-      clientCategory: clientInfo.clientCategory || "",
-      clientCountryCode: clientInfo.clientCountryCode || "",
-      clientStateCode: clientInfo.clientCountryCode || "",
-      clientCity: clientInfo.clientCity || "",
-      clientAddress: clientInfo.clientAddress || "",
-      note: clientInfo.note || "",
+      unionInfo: clientInfo.unionInfo || "",
     },
     onSubmit: async (values, { resetForm }) => {
       try {
         const response = await axios.put(
-          `https://api.tojoglobal.com/api/admin/clientlist/edit/${id}`,
+          `${state.port}/api/admin/clientlist/edit/${id}`,
           values
         );
         if (response.data.Status) {
@@ -132,7 +149,7 @@ const EditClinetList = () => {
   });
 
   return (
-    <div className="container dashboard_All">
+    <div className="container mx-auto px-4 py-6 dashboard_All">
       <ToastContainer />
       <h5>
         <Link to="/dashboard/client" className="route_link">
@@ -152,172 +169,216 @@ const EditClinetList = () => {
           className="p-4"
           encType="multipart/form-data"
         >
-          <div className="row">
-            <div className="col-md-6 inputfield">
-              <label htmlFor="clientName">
-                Client Name <IoStarSharp className="reqired_symbole" />
-              </label>
-              <input
+          <div className="grid grid-cols-6 gap-7">
+            {/* Division */}
+            <div className="col-span-2 inputfield">
+              <label htmlFor="division">Division</label>
+
+              <select
+                name="division"
+                id="division"
                 className="text_input_field"
-                type="text"
-                name="clientName"
-                onChange={formik.handleChange}
-                placeholder="Client Name"
-                value={formik.values.clientName}
-                required
-              />
+                value={formik.values.division}
+                onChange={(e) => {
+                  formik.setFieldValue("division", e.target.value);
+                  handleDivisionChange(e.target.value);
+                }}
+              >
+                <option value="">Choose Division</option>
+                {divisions.map((dv) => (
+                  <option key={dv.division} value={dv.division}>
+                    {dv.division}
+                  </option>
+                ))}
+              </select>
             </div>
-            <div className="col-md-6 inputfield">
-              <label htmlFor="clientmobile">Clinet Mobile</label>
+
+            {/* District */}
+            <div className="col-span-2 inputfield">
+              <label htmlFor="district">District</label>
+
+              <select
+                name="district"
+                id="district"
+                className="text_input_field"
+                value={formik.values.district}
+                onChange={(e) => {
+                  formik.setFieldValue("district", e.target.value);
+                  handleDistrictChange(e.target.value);
+                }}
+              >
+                <option value="">Choose District</option>
+                {districts.map((dist) => (
+                  <option key={dist.district} value={dist.district}>
+                    {dist.district}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Upazilla */}
+            <div className="col-span-2 inputfield">
+              <label htmlFor="upazilla">Upazilla</label>
+
+              <select
+                name="upazilla"
+                id="upazilla"
+                className="text_input_field"
+                value={formik.values.upazilla}
+                onChange={formik.handleChange}
+              >
+                <option value="">Choose Upazilla</option>
+                {upazillas &&
+                  upazillas.map((upa) => (
+                    <option key={upa} value={upa}>
+                      {upa}
+                    </option>
+                  ))}
+              </select>
+            </div>
+            {/* up Name  english*/}
+            <div className="col-span-3 inputfield">
+              <label htmlFor="unNameEn">union name english</label>
+
               <input
                 className="text_input_field"
                 type="text"
-                name="clientmobile"
+                name="unNameEn"
                 onChange={formik.handleChange}
-                placeholder="Clinet Mobile"
-                value={formik.values.clientmobile}
+                placeholder="Write union name english"
+                value={formik.values.unNameEn}
               />
             </div>
 
-            <div className="col-md-6 inputfield">
-              <label htmlFor="clientemail">Clinet Email</label>
+            {/* up Name  bangla*/}
+            <div className="col-span-3 inputfield">
+              <label htmlFor="unNameBn">union name bangla</label>
+
               <input
                 className="text_input_field"
                 type="text"
-                name="clientemail"
+                name="unNameBn"
                 onChange={formik.handleChange}
-                placeholder="Client Email"
-                value={formik.values.clientemail}
+                placeholder="Write union name bangla"
+                value={formik.values.unNameBn}
               />
             </div>
-            <div className="col-md-6 inputfield">
-              <label htmlFor="gender">Gender</label>
+
+            {/* up linke1 */}
+            <div className="col-span-3 inputfield">
+              <label htmlFor="unLinkOne">union link 1</label>
+
+              <input
+                className="text_input_field"
+                type="text"
+                name="unLinkOne"
+                onChange={formik.handleChange}
+                placeholder="Give union link 1"
+                value={formik.values.unLinkOne}
+              />
+            </div>
+            {/* up linke2 */}
+            <div className="col-span-3 inputfield">
+              <label htmlFor="unLinkTwo">union link 2 </label>
+
+              <input
+                className="text_input_field"
+                type="text"
+                name="unLinkTwo"
+                onChange={formik.handleChange}
+                placeholder="Give union link 2"
+                value={formik.values.unLinkTwo}
+              />
+            </div>
+
+            {/* up secretary(সচিব) Name  */}
+            <div className="inputfield col-span-3">
+              <label htmlFor="upSecretaryName">Union secretary name</label>
+
+              <input
+                className="text_input_field"
+                type="text"
+                name="upSecretaryName"
+                onChange={formik.handleChange}
+                placeholder="Write union secretary name"
+                value={formik.values.upSecretaryName}
+              />
+            </div>
+
+            {/* up secretary Email Address  */}
+            <div className="col-span-3 inputfield">
+              <label htmlFor="UpEmail">email address</label>
+
+              <input
+                className="text_input_field"
+                type="text"
+                name="UpEmail"
+                onChange={formik.handleChange}
+                placeholder="Write email address"
+                value={formik.values.UpEmail}
+              />
+            </div>
+
+            {/* up secretary contact Number  */}
+            <div className="col-span-2 inputfield">
+              <label htmlFor="upContactNumber">contact Number</label>
+
+              <input
+                className="text_input_field"
+                type="text"
+                name="upContactNumber"
+                onChange={formik.handleChange}
+                placeholder="Write contact number"
+                value={formik.values.upContactNumber}
+              />
+            </div>
+            {/* up secretary Whatsapp Number  */}
+            <div className="col-span-2 inputfield">
+              <label htmlFor="upWhatsappNumber">WhatsApp Number</label>
+
+              <input
+                className="text_input_field"
+                type="text"
+                name="upWhatsappNumber"
+                onChange={formik.handleChange}
+                placeholder="Write Whatsapp number"
+                value={formik.values.upWhatsappNumber}
+              />
+            </div>
+
+            {/* up secretary gender */}
+            <div className="col-span-2 inputfield">
+              <label htmlFor="gender">gender</label>
 
               <select
                 name="gender"
                 id="gender"
                 className="text_input_field"
-                aria-label="Default select example"
                 value={formik.values.gender}
                 onChange={(e) => formik.setFieldValue("gender", e.target.value)}
-                required
               >
+                <option value="" selected>
+                  Choose gender
+                </option>
                 <option value="male" selected>
                   Male
                 </option>
                 <option value="female">Female</option>
+                <option value="Other">Other</option>
               </select>
             </div>
 
-            <div className="col-md-12 inputfield">
-              <label htmlFor="clientCategory">
-                Clinet Category
-                <IoStarSharp className="reqired_symbole" />
-              </label>
+            {/* union info note */}
+            <div className="col-span-6 inputfield">
+              <h5 className="text-xl font-extrabold">union info note </h5>
 
-              <select
-                name="clientCategory"
-                id="clientCategory"
-                className="text_input_field"
-                aria-label="Default select example"
-                value={formik.values.clientCategory}
-                onChange={(e) =>
-                  formik.setFieldValue("clientCategory", e.target.value)
-                }
-              >
-                <option value="">Choose Category</option>
-                {ClientCatagoryList.length > 0 &&
-                  ClientCatagoryList.map((CaNa) => (
-                    <option value={CaNa.categoryName} key={CaNa.uuid}>
-                      {CaNa.categoryName}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            <div className="col-md-4 inputfield">
-              <label htmlFor="clientCountry">Country</label>
-              <select
-                name="clientCountry"
-                id="clientCountry"
-                className="text_input_field"
-                value={formik.values.clientCountryCode}
-                onChange={(e) => {
-                  formik.setFieldValue("clientCountryCode", e.target.value);
-                  handleCountryChange(e.target.value);
-                }}
-              >
-                <option value="">Choose Country</option>
-                {countries.map((country) => (
-                  <option key={country.isoCode} value={country.isoCode}>
-                    {country.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="col-md-4 inputfield">
-              <label htmlFor="clientState">State</label>
-              <select
-                name="clientState"
-                id="clientState"
-                className="text_input_field"
-                value={formik.values.clientStateCode}
-                onChange={(e) => {
-                  formik.setFieldValue("clientStateCode", e.target.value);
-                  handleStateChange(e.target.value);
-                }}
-              >
-                <option value="">Choose State</option>
-                {states.map((state) => (
-                  <option key={state.name} value={state.isoCode}>
-                    {state.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="col-md-4 inputfield">
-              <label htmlFor="clientCity">City</label>
-              <select
-                name="clientCity"
-                id="clientCity"
-                className="text_input_field"
-                value={formik.values.clientCity}
-                onChange={(e) =>
-                  formik.setFieldValue("clientCity", e.target.value)
-                }
-              >
-                <option value="">Choose City</option>
-                {cities.map((city) => (
-                  <option key={city.isoCode} value={city.isoCode}>
-                    {city.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="col-md-12 inputfield">
-              <label htmlFor="clientAddress">Clinet Address</label>
-              <input
-                className="text_input_field"
-                type="text"
-                name="clientAddress"
-                onChange={formik.handleChange}
-                placeholder="Client Address"
-                value={formik.values.clientAddress}
-              />
-            </div>
-
-            <div className="col-md-12 inputfield">
-              <h5>Description</h5>
               <Editor
-                id="note"
-                apiKey='heppko8q7wimjwb1q87ctvcpcpmwm5nckxpo4s28mnn2dgkb'
-                textareaName="note"
-                initialValue="Get Start ..."
+                id="unionInfo"
+                apiKey="heppko8q7wimjwb1q87ctvcpcpmwm5nckxpo4s28mnn2dgkb"
+                textareaName="unionInfo"
+                initialValue="Write union infomation"
                 onEditorChange={(content) => {
-                  formik.setFieldValue("note", content);
+                  formik.setFieldValue("unionInfo", content);
                 }}
                 init={{
                   height: 350,
@@ -352,6 +413,8 @@ const EditClinetList = () => {
                 }}
               />
             </div>
+
+            {/* Submit Button */}
             <div className="col-md-12 inputFiledMiddel">
               <button
                 type="submit"

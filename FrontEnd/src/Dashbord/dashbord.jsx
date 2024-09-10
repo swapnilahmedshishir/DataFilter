@@ -2,21 +2,23 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { Button, Layout, theme } from "antd";
 import Sider from "antd/es/layout/Sider";
 import ToggleThemeButton from "./SmallComponent/ToggleThemeButton";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Content, Header } from "antd/es/layout/layout";
 import { AiOutlineMenuFold, AiOutlineMenuUnfold } from "react-icons/ai";
 import Logout from "./SmallComponent/logout";
 import axios from "axios";
 import Logo from "./SmallComponent/logo";
-import MenuList from "./DashbordComponent/SideMenu/MenuList";
+import MenuList from "./MenuList/MenuList";
 import Clock from "./SmallComponent/Clock";
+import { AppContext } from "./SmallComponent/AppContext";
 
 const Dashboard = () => {
+  const { state } = useContext(AppContext);
   // handle logout function
   const anvigate = useNavigate();
   axios.defaults.withCredentials = true;
   const handleLogout = () => {
-    axios.get("https://api.tojonews.com/api/admin/logout").then((result) => {
+    axios.get(`${state.port}/api/admin/logout`).then((result) => {
       if (result.data.Status) {
         localStorage.removeItem("valid");
         anvigate("/");

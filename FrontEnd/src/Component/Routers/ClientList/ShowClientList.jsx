@@ -1,13 +1,14 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router";
 import "react-toastify/dist/ReactToastify.css";
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { Link } from "react-router-dom";
 import DOMPurify from "dompurify";
-import { Country, State } from "country-state-city";
+import { AppContext } from "../../../Dashbord/SmallComponent/AppContext";
 
 const ShowClinetList = () => {
+  const { state } = useContext(AppContext);
   // Router
   const { id } = useParams();
   // state
@@ -17,117 +18,175 @@ const ShowClinetList = () => {
   //Data Fetching
   useEffect(() => {
     axios
-      .get(`https://api.tojoglobal.com/api/admin/clientlist/${id}`)
+      .get(`${state.port}/api/admin/clientlist/${id}`)
       .then((result) => {
         if (result.data.Status) {
           setClientInfo({
             ...clientInfo,
-            clientName: result.data.Result[0].clientName,
-            clientmobile: result.data.Result[0].clientmobile,
-            clientemail: result.data.Result[0].clientemail,
+            division: result.data.Result[0].divisionName,
+            district: result.data.Result[0].districtName,
+            upazilla: result.data.Result[0].upazillaName,
+            unNameEn: result.data.Result[0].unNameEn,
+            unNameBn: result.data.Result[0].unNameBn,
+            unLinkOne: result.data.Result[0].unLinkOne,
+            unLinkTwo: result.data.Result[0].unLinkTwo,
+            upSecretaryName: result.data.Result[0].upSecretaryName,
+            UpEmail: result.data.Result[0].UpEmail,
+            upContactNumber: result.data.Result[0].upContactNumber,
+            upWhatsappNumber: result.data.Result[0].upWhatsappNumber,
             gender: result.data.Result[0].gender,
-            clientCategory: result.data.Result[0].clientCategory,
-            clientCity: result.data.Result[0].clientCity,
-            clientCountryCode: result.data.Result[0].clientCountryCode,
-            clientStateCode: result.data.Result[0].clientStateCode,
-            clientAddress: result.data.Result[0].clientAddress,
-            note: result.data.Result[0].note,
+            unionInfo: result.data.Result[0].unionInfo,
           });
         } else {
           alert(result.data.Error);
         }
       })
       .catch((err) => setErrorMessage(err));
-  }, [id]);
-
-  const state = State.getStateByCodeAndCountry(
-    clientInfo.clientStateCode,
-    clientInfo.clientCountryCode
-  );
-  const country = Country.getCountryByCode(clientInfo.clientCountryCode);
+  }, [id, state.port]);
 
   return (
-    <div className="container dashboard_All">
-      <h5>
-        <Link to="/dashboard/client" className="route_link">
+    <div className="container mx-auto px-4 py-6 dashboard_All">
+      <div>
+        <Link
+          to="/dashboard/client"
+          className="route_link flex items-center text-xl"
+        >
           {" "}
-          <IoMdArrowRoundBack /> Back
+          <IoMdArrowRoundBack className="mr-3" /> Back
         </Link>
-      </h5>
+      </div>
       <h1 className="dashboard_name">Client Details </h1>
       <hr />
       {errorMessage && <div className="error-message">{errorMessage}</div>}
 
       <div className="from_div">
-        <div className="btn-text-right">
+        <div className="text-right">
           <Link to={`/dashboard/client/edit/${id}`}>
-            <button className="button-62" type="button">
+            <button
+              className="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+              type="button"
+            >
               Edit
             </button>
           </Link>
         </div>
+
         <br />
-        <div key={clientInfo.uuid} className="grid_container_div">
-          <table className="table">
-            <tbody>
+        <div
+          key={clientInfo.uuid}
+          className="grid_container_div overflow-x-auto"
+        >
+          <table className="min-w-full divide-y divide-solid divide-gray-200">
+            <tbody className="bg-[#353181] divide-solid  divide-y divide-gray-200 text-2xl">
               <tr>
-                <td>
-                  <span > Client Name </span>
+                <td className="px-6 py-4 whitespace-nowrap text-xl font-medium text-gray-900">
+                  <span> Union name english </span>
                 </td>
-                <td> {clientInfo.clientName}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-xl text-gray-500">
+                  {clientInfo.unNameEn}
+                </td>
               </tr>
               <tr>
-                <td>
-                  <span > Mobile </span>
+                <td className="px-6 py-4 whitespace-nowrap text-xl font-medium text-gray-900">
+                  <span> Union name bangla </span>
                 </td>
-                <td>{clientInfo.clientmobile}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-xl text-gray-500">
+                  {clientInfo.unNameBn}
+                </td>
               </tr>
               <tr>
-                <td>
-                  <span > Email </span>
+                <td className="px-6 py-4 whitespace-nowrap text-xl font-medium text-gray-900">
+                  <span> Union upazilla </span>
                 </td>
-                <td>{clientInfo.clientemail}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-xl text-gray-500">
+                  {clientInfo.upazilla}
+                </td>
               </tr>
               <tr>
-                <td>
-                  <span > Client Category </span>
+                <td className="px-6 py-4 whitespace-nowrap text-xl font-medium text-gray-900">
+                  <span> Union district </span>
                 </td>
-                <td>{clientInfo.clientCategory}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-xl text-gray-500">
+                  {clientInfo.district}
+                </td>
               </tr>
               <tr>
-                <td>
-                  <span > Address </span>
+                <td className="px-6 py-4 whitespace-nowrap text-xl font-medium text-gray-900">
+                  <span> Union division</span>
                 </td>
-                <td>{clientInfo.clientAddress}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-xl text-gray-500">
+                  {clientInfo.division}
+                </td>
               </tr>
               <tr>
-                <td>
-                  <span > Country </span>
+                <td className="px-6 py-4 whitespace-nowrap text-xl font-medium text-gray-900">
+                  <span> Union Link One </span>
                 </td>
-                <td>{country ? country.name : ""}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-xl text-gray-500">
+                  <a href={clientInfo.unLinkOne} target="_blank">
+                    {clientInfo.unLinkOne}
+                  </a>
+                </td>
               </tr>
               <tr>
-                <td>
-                  <span > State </span>
+                <td className="px-6 py-4 whitespace-nowrap text-xl font-medium text-gray-900">
+                  <span> Union Link two </span>
                 </td>
-                <td>{state ? state.name : ""}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-xl text-gray-500">
+                  <a href={clientInfo.unLinkTwo} target="_blank">
+                    {clientInfo.unLinkTwo}
+                  </a>
+                </td>
               </tr>
               <tr>
-                <td>
-                  <span > City </span>
+                <td className="px-6 py-4 whitespace-nowrap text-xl font-medium text-gray-900">
+                  <span> Union secretary Name </span>
                 </td>
-                <td>{clientInfo.clientCity}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-xl text-gray-500">
+                  {clientInfo.upSecretaryName}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-xl font-medium text-gray-900">
+                  <span> Union secretary Email </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-xl text-gray-500">
+                  {clientInfo.UpEmail}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-xl font-medium text-gray-900">
+                  <span> Union secretary Number </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-xl text-gray-500">
+                  {clientInfo.upContactNumber}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-xl font-medium text-gray-900">
+                  <span> Union secretary WhatsApp Number </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-xl text-gray-500">
+                  {clientInfo.upWhatsappNumber}
+                </td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap text-xl font-medium text-gray-900">
+                  <span> Union secretary gender </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-xl text-gray-500">
+                  {clientInfo.gender}
+                </td>
               </tr>
 
               <tr>
-                <td>
-                  <span >Description</span>
+                <td className="px-6 py-4 whitespace-nowrap text-xl font-medium text-gray-900">
+                  <span>Union Infomation</span>
                 </td>
-                <td>
-                  {" "}
+                <td className="px-6 py-4 whitespace-nowrap text-xl text-gray-500">
                   <span
                     dangerouslySetInnerHTML={{
-                      __html: DOMPurify.sanitize(clientInfo.note),
+                      __html: DOMPurify.sanitize(clientInfo.unionInfo),
                     }}
                   ></span>
                 </td>

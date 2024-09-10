@@ -6,13 +6,11 @@ import "react-toastify/dist/ReactToastify.css";
 import { AppContext } from "../../../Dashbord/SmallComponent/AppContext";
 import { IoStarSharp } from "react-icons/io5";
 import { Editor } from "@tinymce/tinymce-react";
-import * as yup from "yup";
 
 const CreateClinetList = () => {
   const { state } = useContext(AppContext);
   const navigate = useNavigate();
 
-  //state
   const [errorMessage, setErrorMessage] = useState(null);
   const [divisions, setDivisions] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -51,14 +49,12 @@ const CreateClinetList = () => {
 
   // Fetch upazillas based on selected district using fetch
   const handleDistrictChange = async (districtName) => {
-    console.log(districtName);
-
     try {
       const res = await fetch(
         `https://bdapis.com/api/v1.2/district/${districtName}`
       );
       const data = await res.json();
-      setUpazillas(data.data.upazillas);
+      setUpazillas(data.data.upazilla); // Assuming 'upazilla' is an array
     } catch (error) {
       setError(error.message);
     }
@@ -67,73 +63,16 @@ const CreateClinetList = () => {
   // Formik form handling
   const formik = useFormik({
     initialValues: {
+      clientName: "",
+      clientmobile: "",
+      clientemail: "",
       division: "",
       district: "",
       upazilla: "",
-      unNameEn: "",
-      unNameBn: "",
-      unLinkOne: "",
-      unLinkTwo: "",
-      upSecretaryName: "",
-      UpEmail: "",
-      upContactNumber: "",
-      upWhatsappNumber: "",
-      gender: "",
-      unionInfo: "",
+      clientAddress: "",
+      note: "",
     },
-    validationSchema: yup.object({
-      division: yup.string().required("please select division"),
-      district: yup.string().required("please select district"),
-      upazilla: yup.string().required("please select upazilla"),
-      unionInfo: yup
-        .string()
-        .max(1000, "unionInfo max 1000 characters")
-        .nullable(),
-      unNameEn: yup
-        .string()
-        .min(3, "Union name must be at least 3 characters")
-        .max(299, "Union name max 299 characters")
-        .required("Union name is required"),
-      unNameBn: yup
-        .string()
-        .min(3, "Union name must be at least 3 characters")
-        .max(299, "Union name max 299 characters")
-        .required("Union name is required"),
-      UpEmail: yup
-        .string()
-        .email("Invalid email address")
-        .required("Email is required"),
-      upContactNumber: yup
-        .string()
-        .matches(
-          /^(\d{1,3}[- ]?)?\d{10}$/,
-          "number is not valid. It should be 10 digits."
-        )
-        .required("number is required"),
-      upWhatsappNumber: yup
-        .string()
-        .matches(
-          /^(\d{1,3}[- ]?)?\d{10}$/,
-          "number is not valid. It should be 10 digits."
-        )
-        .nullable(),
-      unLinkOne: yup
-        .string()
-        .url("Link is not valid use (https://)")
-        .required("Link 1 is required"),
-      unLinkTwo: yup
-        .string()
-        .url("Link is not valid use (https://)")
-        .nullable(),
-      upSecretaryName: yup
-        .string()
-        .min(3, "Name must be at least 3 characters")
-        .max(150, "Name max 150 characters")
-        .required("Name is required"),
-    }),
     onSubmit: async (values, { resetForm }) => {
-      console.log(values);
-
       try {
         const response = await fetch(
           `${state.port}/api/admin/clientlist/create`,
@@ -164,7 +103,7 @@ const CreateClinetList = () => {
   });
 
   return (
-    <div className="container mx-auto px-4 py-6 dashboard_All">
+    <div className="container dashboard_All">
       <ToastContainer />
       <h1 className="dashboard_name">Create Client</h1>
       {errorMessage && <div className="error-message">{errorMessage}</div>}
@@ -173,12 +112,7 @@ const CreateClinetList = () => {
           <div className="grid grid-cols-6 gap-7">
             {/* Division */}
             <div className="col-span-2 inputfield">
-              <label htmlFor="division">
-                Division <IoStarSharp className="reqired_symbole" />
-              </label>
-              {formik.touched.division && formik.errors.division && (
-                <span className="error-message">{formik.errors.division}</span>
-              )}
+              <label htmlFor="division">Division</label>
               <select
                 name="division"
                 id="division"
@@ -200,13 +134,7 @@ const CreateClinetList = () => {
 
             {/* District */}
             <div className="col-span-2 inputfield">
-              <label htmlFor="district">
-                District <IoStarSharp className="reqired_symbole" />
-              </label>
-
-              {formik.touched.district && formik.errors.district && (
-                <span className="error-message">{formik.errors.district}</span>
-              )}
+              <label htmlFor="district">District</label>
               <select
                 name="district"
                 id="district"
@@ -228,13 +156,7 @@ const CreateClinetList = () => {
 
             {/* Upazilla */}
             <div className="col-span-2 inputfield">
-              <label htmlFor="upazilla">
-                Upazilla <IoStarSharp className="reqired_symbole" />
-              </label>
-
-              {formik.touched.upazilla && formik.errors.upazilla && (
-                <span className="error-message">{formik.errors.upazilla}</span>
-              )}
+              <label htmlFor="upazilla">Upazilla</label>
               <select
                 name="upazilla"
                 id="upazilla"
@@ -243,188 +165,119 @@ const CreateClinetList = () => {
                 onChange={formik.handleChange}
               >
                 <option value="">Choose Upazilla</option>
-                {upazillas &&
-                  upazillas.map((upa) => (
-                    <option key={upa} value={upa}>
-                      {upa}
-                    </option>
-                  ))}
+                {upazillas.map((upa) => (
+                  <option key={upa} value={upa}>
+                    {upa}
+                  </option>
+                ))}
               </select>
             </div>
+
             {/* up Name  english*/}
             <div className="col-span-3 inputfield">
-              <label htmlFor="unNameEn">
-                union name english <IoStarSharp className="reqired_symbole" />
-              </label>
-
-              {formik.touched.unNameEn && formik.errors.unNameEn && (
-                <span className="error-message">{formik.errors.unNameEn}</span>
-              )}
+              <label htmlFor="clientAddress">union name english</label>
               <input
                 className="text_input_field"
                 type="text"
-                name="unNameEn"
+                name="clientAddress"
                 onChange={formik.handleChange}
-                placeholder="Write union name english"
-                value={formik.values.unNameEn}
+                placeholder="Client Address"
+                value={formik.values.clientAddress}
               />
             </div>
 
             {/* up Name  bangla*/}
             <div className="col-span-3 inputfield">
-              <label htmlFor="unNameBn">
-                union name bangla <IoStarSharp className="reqired_symbole" />
-              </label>
-
-              {formik.touched.unNameBn && formik.errors.unNameBn && (
-                <span className="error-message">{formik.errors.unNameBn}</span>
-              )}
+              <label htmlFor="clientAddress">union name bangla</label>
               <input
                 className="text_input_field"
                 type="text"
-                name="unNameBn"
+                name="clientAddress"
                 onChange={formik.handleChange}
-                placeholder="Write union name bangla"
-                value={formik.values.unNameBn}
+                placeholder="Client Address"
+                value={formik.values.clientAddress}
               />
             </div>
 
             {/* up linke1 */}
             <div className="col-span-3 inputfield">
-              <label htmlFor="unLinkOne">
-                union link 1 <IoStarSharp className="reqired_symbole" />
-              </label>
-
-              {formik.touched.unLinkOne && formik.errors.unLinkOne && (
-                <span className="error-message">{formik.errors.unLinkOne}</span>
-              )}
+              <label htmlFor="clientemail">union link 1 </label>
               <input
                 className="text_input_field"
                 type="text"
-                name="unLinkOne"
+                name="clientemail"
                 onChange={formik.handleChange}
-                placeholder="Give union link 1"
-                value={formik.values.unLinkOne}
+                placeholder="Client Email"
+                value={formik.values.clientemail}
               />
             </div>
             {/* up linke2 */}
             <div className="col-span-3 inputfield">
-              <label htmlFor="unLinkTwo">union link 2 </label>
-
-              {formik.touched.unLinkTwo && formik.errors.unLinkTwo && (
-                <span className="error-message">{formik.errors.unLinkTwo}</span>
-              )}
+              <label htmlFor="clientemail">union link 2 </label>
               <input
                 className="text_input_field"
                 type="text"
-                name="unLinkTwo"
+                name="clientemail"
                 onChange={formik.handleChange}
-                placeholder="Give union link 2"
-                value={formik.values.unLinkTwo}
+                placeholder="Client Email"
+                value={formik.values.clientemail}
               />
             </div>
 
             {/* up secretary(সচিব) Name  */}
             <div className="inputfield col-span-3">
-              <label htmlFor="upSecretaryName">
+              <label htmlFor="clientName">
                 Union secretary name
                 <IoStarSharp className="reqired_symbole" />
               </label>
-
-              {formik.touched.upSecretaryName &&
-                formik.errors.upSecretaryName && (
-                  <span className="error-message">
-                    {formik.errors.upSecretaryName}
-                  </span>
-                )}
               <input
                 className="text_input_field"
                 type="text"
-                name="upSecretaryName"
+                name="clientName"
                 onChange={formik.handleChange}
-                placeholder="Write union secretary name"
-                value={formik.values.upSecretaryName}
+                placeholder="Client Name"
+                value={formik.values.clientName}
                 required
               />
             </div>
-
+            {/* up secretary contact Number  */}
+            <div className="col-span-3 inputfield">
+              <label htmlFor="clientmobile">contact Number</label>
+              <input
+                className="text_input_field"
+                type="text"
+                name="clientmobile"
+                onChange={formik.handleChange}
+                placeholder="Clinet Mobile"
+                value={formik.values.clientmobile}
+              />
+            </div>
             {/* up secretary Email Address  */}
             <div className="col-span-3 inputfield">
-              <label htmlFor="UpEmail">
-                email address <IoStarSharp className="reqired_symbole" />
-              </label>
-
-              {formik.touched.UpEmail && formik.errors.UpEmail && (
-                <span className="error-message">{formik.errors.UpEmail}</span>
-              )}
+              <label htmlFor="clientemail">email address</label>
               <input
                 className="text_input_field"
                 type="text"
-                name="UpEmail"
+                name="clientemail"
                 onChange={formik.handleChange}
-                placeholder="Write email address"
-                value={formik.values.UpEmail}
-              />
-            </div>
-
-            {/* up secretary contact Number  */}
-            <div className="col-span-2 inputfield">
-              <label htmlFor="upContactNumber">
-                contact Number <IoStarSharp className="reqired_symbole" />
-              </label>
-
-              {formik.touched.upContactNumber &&
-                formik.errors.upContactNumber && (
-                  <span className="error-message">
-                    {formik.errors.upContactNumber}
-                  </span>
-                )}
-              <input
-                className="text_input_field"
-                type="text"
-                name="upContactNumber"
-                onChange={formik.handleChange}
-                placeholder="Write contact number"
-                value={formik.values.upContactNumber}
-              />
-            </div>
-            {/* up secretary Whatsapp Number  */}
-            <div className="col-span-2 inputfield">
-              <label htmlFor="upWhatsappNumber">WhatsApp Number</label>
-
-              {formik.touched.upWhatsappNumber &&
-                formik.errors.upWhatsappNumber && (
-                  <span className="error-message">
-                    {formik.errors.upWhatsappNumber}
-                  </span>
-                )}
-              <input
-                className="text_input_field"
-                type="text"
-                name="upWhatsappNumber"
-                onChange={formik.handleChange}
-                placeholder="Write Whatsapp number"
-                value={formik.values.upWhatsappNumber}
+                placeholder="Client Email"
+                value={formik.values.clientemail}
               />
             </div>
 
             {/* up secretary gender */}
-            <div className="col-span-2 inputfield">
+            <div className="col-span-3 inputfield">
               <label htmlFor="gender">gender</label>
 
-              {formik.touched.gender && formik.errors.gender && (
-                <span className="error-message">{formik.errors.gender}</span>
-              )}
               <select
                 name="gender"
                 id="gender"
                 className="text_input_field"
+                aria-label="Default select example"
                 value={formik.values.gender}
                 onChange={(e) => formik.setFieldValue("gender", e.target.value)}
+                required
               >
-                <option value="" selected>
-                  Choose gender
-                </option>
                 <option value="male" selected>
                   Male
                 </option>
@@ -436,17 +289,13 @@ const CreateClinetList = () => {
             {/* union info note */}
             <div className="col-span-6 inputfield">
               <h5 className="text-xl font-extrabold">union info note </h5>
-
-              {formik.touched.unionInfo && formik.errors.unionInfo && (
-                <span className="error-message">{formik.errors.unionInfo}</span>
-              )}
               <Editor
-                id="unionInfo"
+                id="note"
                 apiKey="heppko8q7wimjwb1q87ctvcpcpmwm5nckxpo4s28mnn2dgkb"
-                textareaName="unionInfo"
-                initialValue="Write union infomation"
+                textareaName="note"
+                initialValue="Get Start ..."
                 onEditorChange={(content) => {
-                  formik.setFieldValue("unionInfo", content);
+                  formik.setFieldValue("note", content);
                 }}
                 init={{
                   height: 350,

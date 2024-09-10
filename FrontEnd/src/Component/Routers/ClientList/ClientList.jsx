@@ -37,7 +37,7 @@ const ClientList = () => {
   // fetch data
   useEffect(() => {
     axios
-      .get("https://api.tojoglobal.com/api/admin/clientlist")
+      .get(`${state.port}/api/admin/clientlist`)
       .then((result) => {
         if (result.data.Status) {
           setClientList(result.data.Result);
@@ -77,9 +77,7 @@ const ClientList = () => {
 
   const handleDelete = () => {
     axios
-      .delete(
-        `https://api.tojoglobal.com/api/admin/clientlist/delete/` + dataDeleteId
-      )
+      .delete(`${state.port}/api/admin/clientlist/delete/` + dataDeleteId)
       .then((result) => {
         if (result.data.Status) {
           navigate("/dashboard/client");
@@ -115,8 +113,8 @@ const ClientList = () => {
       <div>
         <div>
           <Link to="/dashboard/client/create">
-            <button className="button-62" role="button">
-              New Client
+            <button className="button-62 mb-4" role="button">
+              <span>New Client</span>
               <span>
                 {" "}
                 <HiPlus />

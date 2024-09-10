@@ -15,7 +15,7 @@ const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'tojoglobal_tojoglobal',
+  database: 'datafilter',
     port: 3306,
   connectTimeout: 10000 
 });  
