@@ -35,6 +35,10 @@ const ClientList = () => {
   const [district, setDistrict] = useState("");
   const [upazila, setUpazila] = useState("");
 
+  const [filteredCities, setFilteredCities] = useState(cities);
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
   const [open, setOpen] = useState(false);
   const [dataDeleteId, setDataDeleteId] = useState(null);
   const [faqToDelete, setFaqToDelete] = useState(null);
@@ -256,7 +260,44 @@ const ClientList = () => {
             </button>
           </div>
         </div>
+        <div>
+          {/* City Dropdown with Search */}
+          <label htmlFor="city" className="control-label">
+            City <span className="error-message">*</span>
+          </label>
+          <br />
 
+          <div className="dropdown-container">
+            <input
+              type="text"
+              id="city"
+              name="city"
+              onChange={(e) => {
+                handleSearchChange(e);
+              }}
+              value={searchTerm}
+              placeholder="Enter city"
+              onClick={() => setIsOpen(!isOpen)} // Toggle dropdown
+              className="contactus_input_fild job_apply_input_field"
+            />
+            {isOpen && (
+              <div className="dropdown">
+                {filteredCities.map((city) => (
+                  <div
+                    key={city.id}
+                    className="dropdown-item"
+                    onClick={() => {
+                      setSearchTerm(city.name); // Update search input
+                      setIsOpen(false); // Close dropdown
+                    }}
+                  >
+                    {city.name}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
         <p className="mb-2 text-xl">
           Total Result = {filteredClientList.length}
         </p>

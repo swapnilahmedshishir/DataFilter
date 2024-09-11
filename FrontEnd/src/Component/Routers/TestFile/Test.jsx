@@ -1,350 +1,261 @@
+import axios from "axios";
 import { useContext, useEffect, useState } from "react";
-import { useFormik } from "formik";
+import { MdOutlineArrowDownward } from "react-icons/md";
 import { useNavigate } from "react-router";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { HiPlus } from "react-icons/hi";
+import { Link } from "react-router-dom";
+import { Country, State } from "country-state-city";
 import { AppContext } from "../../../Dashbord/SmallComponent/AppContext";
-import { IoStarSharp } from "react-icons/io5";
-import { Editor } from "@tinymce/tinymce-react";
 
-const CreateClinetList = () => {
+import {
+  Dialog,
+  useTheme,
+  useMediaQuery,
+  DialogContentText,
+  DialogTitle,
+  Button,
+  DialogActions,
+  DialogContent,
+} from "@mui/material";
+import { BsExclamationCircle } from "react-icons/bs";
+
+const ClientList = () => {
   const { state } = useContext(AppContext);
+  // path
+  const isHomePageRoute = location.pathname;
   const navigate = useNavigate();
 
+  // state
   const [errorMessage, setErrorMessage] = useState(null);
-  const [divisions, setDivisions] = useState([]);
-  const [districts, setDistricts] = useState([]);
-  const [upazillas, setUpazillas] = useState([]);
-  const [error, setError] = useState(null);
+  const [clientList, setClientList] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [dataDeleteId, setDataDeleteId] = useState(null);
+  const [faqToDelete, setFaqToDelete] = useState(null);
 
-  // Fetch divisions from API using fetch
-  const fetchDivisions = async (url) => {
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-      setDivisions(data.data);
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
+  // fetch data
   useEffect(() => {
-    const endPoint = "https://bdapis.com/api/v1.2/divisions";
-    fetchDivisions(endPoint);
-  }, []);
+    axios
+      .get(`${state.port}/api/admin/clientlist`)
+      .then((result) => {
+        if (result.data.Status) {
+          setClientList(result.data.Result);
+        } else {
+          setErrorMessage(result.data.Error);
+        }
+      })
+      .catch((err) => setErrorMessage(err.message));
+  }, [state.port]);
 
-  // Fetch districts based on selected division using fetch
-  const handleDivisionChange = async (divisionName) => {
-    try {
-      const res = await fetch(
-        `https://bdapis.com/api/v1.2/division/${divisionName}`
-      );
-      const data = await res.json();
-      setDistricts(data.data);
-      setUpazillas([]); // Clear upazillas when division changes
-    } catch (error) {
-      setError(error.message);
-    }
+  // matrial dialog box
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
+
+  // dialog box open and close function
+  const handleClickOpen = (id) => {
+    setOpen(true);
+    setDataDeleteId(id);
+  };
+  const handleClose = () => {
+    setOpen(false);
+  };
+  // data delete and cancel function
+  const handleCancel = () => {
+    toast.error(`Cancel`, {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+    });
+    setOpen(false);
   };
 
-  // Fetch upazillas based on selected district using fetch
-  const handleDistrictChange = async (districtName) => {
-    try {
-      const res = await fetch(
-        `https://bdapis.com/api/v1.2/district/${districtName}`
-      );
-      const data = await res.json();
-      setUpazillas(data.data.upazilla); // Assuming 'upazilla' is an array
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
-  // Formik form handling
-  const formik = useFormik({
-    initialValues: {
-      clientName: "",
-      clientmobile: "",
-      clientemail: "",
-      division: "",
-      district: "",
-      upazilla: "",
-      clientAddress: "",
-      note: "",
-    },
-    onSubmit: async (values, { resetForm }) => {
-      try {
-        const response = await fetch(
-          `${state.port}/api/admin/clientlist/create`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(values),
-          }
-        );
-        const result = await response.json();
-        if (result.Status) {
-          setErrorMessage(null);
-          toast.success(`Client created successfully`, {
+  const handleDelete = () => {
+    axios
+      .delete(`${state.port}/api/admin/clientlist/delete/` + dataDeleteId)
+      .then((result) => {
+        if (result.data.Status) {
+          navigate("/dashboard/client");
+          setFaqToDelete(`Deleted successfully`);
+          toast.success(`Deleted successfully`, {
             position: "top-right",
             autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
           });
-          setTimeout(() => {
-            navigate("/dashboard/client");
-          }, 1500);
+        } else {
+          setFaqToDelete(result.data.Error);
         }
-      } catch (error) {
-        setErrorMessage(`Error: ${error}`);
-      }
-      resetForm();
-    },
-  });
+      })
+      .catch((err) => setFaqToDelete(err.message));
+
+    setOpen(false);
+  };
 
   return (
-    <div className="container dashboard_All">
+    <div className="conatiner dashboard_All">
       <ToastContainer />
-      <h1 className="dashboard_name">Create Client</h1>
+      <h5>{isHomePageRoute}</h5>
+      <h1 className="dashboard_name">Client List</h1>
+      <hr />
       {errorMessage && <div className="error-message">{errorMessage}</div>}
-      <div className="form_div">
-        <form onSubmit={formik.handleSubmit} className="p-2">
-          <div className="grid grid-cols-6 gap-7">
-            {/* Division */}
-            <div className="col-span-2 inputfield">
-              <label htmlFor="division">Division</label>
-              <select
-                name="division"
-                id="division"
-                className="text_input_field"
-                value={formik.values.division}
-                onChange={(e) => {
-                  formik.setFieldValue("division", e.target.value);
-                  handleDivisionChange(e.target.value);
-                }}
-              >
-                <option value="">Choose Division</option>
-                {divisions.map((dv) => (
-                  <option key={dv.division} value={dv.division}>
-                    {dv.division}
-                  </option>
-                ))}
-              </select>
-            </div>
 
-            {/* District */}
-            <div className="col-span-2 inputfield">
-              <label htmlFor="district">District</label>
-              <select
-                name="district"
-                id="district"
-                className="text_input_field"
-                value={formik.values.district}
-                onChange={(e) => {
-                  formik.setFieldValue("district", e.target.value);
-                  handleDistrictChange(e.target.value);
-                }}
-              >
-                <option value="">Choose District</option>
-                {districts.map((dist) => (
-                  <option key={dist.district} value={dist.district}>
-                    {dist.district}
-                  </option>
-                ))}
-              </select>
-            </div>
+      <div>
+        <div>
+          <Link to="/dashboard/client/create">
+            <button className="button-62 mb-4" role="button">
+              <span>New Client</span>
+              <span>
+                {" "}
+                <HiPlus />
+              </span>
+            </button>
+          </Link>
 
-            {/* Upazilla */}
-            <div className="col-span-2 inputfield">
-              <label htmlFor="upazilla">Upazilla</label>
-              <select
-                name="upazilla"
-                id="upazilla"
-                className="text_input_field"
-                value={formik.values.upazilla}
-                onChange={formik.handleChange}
-              >
-                <option value="">Choose Upazilla</option>
-                {upazillas.map((upa) => (
-                  <option key={upa} value={upa}>
-                    {upa}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* up Name  english*/}
-            <div className="col-span-3 inputfield">
-              <label htmlFor="clientAddress">union name english</label>
-              <input
-                className="text_input_field"
-                type="text"
-                name="clientAddress"
-                onChange={formik.handleChange}
-                placeholder="Client Address"
-                value={formik.values.clientAddress}
-              />
-            </div>
-
-            {/* up Name  bangla*/}
-            <div className="col-span-3 inputfield">
-              <label htmlFor="clientAddress">union name bangla</label>
-              <input
-                className="text_input_field"
-                type="text"
-                name="clientAddress"
-                onChange={formik.handleChange}
-                placeholder="Client Address"
-                value={formik.values.clientAddress}
-              />
-            </div>
-
-            {/* up linke1 */}
-            <div className="col-span-3 inputfield">
-              <label htmlFor="clientemail">union link 1 </label>
-              <input
-                className="text_input_field"
-                type="text"
-                name="clientemail"
-                onChange={formik.handleChange}
-                placeholder="Client Email"
-                value={formik.values.clientemail}
-              />
-            </div>
-            {/* up linke2 */}
-            <div className="col-span-3 inputfield">
-              <label htmlFor="clientemail">union link 2 </label>
-              <input
-                className="text_input_field"
-                type="text"
-                name="clientemail"
-                onChange={formik.handleChange}
-                placeholder="Client Email"
-                value={formik.values.clientemail}
-              />
-            </div>
-
-            {/* up secretary(সচিব) Name  */}
-            <div className="inputfield col-span-3">
-              <label htmlFor="clientName">
-                Union secretary name
-                <IoStarSharp className="reqired_symbole" />
-              </label>
-              <input
-                className="text_input_field"
-                type="text"
-                name="clientName"
-                onChange={formik.handleChange}
-                placeholder="Client Name"
-                value={formik.values.clientName}
-                required
-              />
-            </div>
-            {/* up secretary contact Number  */}
-            <div className="col-span-3 inputfield">
-              <label htmlFor="clientmobile">contact Number</label>
-              <input
-                className="text_input_field"
-                type="text"
-                name="clientmobile"
-                onChange={formik.handleChange}
-                placeholder="Clinet Mobile"
-                value={formik.values.clientmobile}
-              />
-            </div>
-            {/* up secretary Email Address  */}
-            <div className="col-span-3 inputfield">
-              <label htmlFor="clientemail">email address</label>
-              <input
-                className="text_input_field"
-                type="text"
-                name="clientemail"
-                onChange={formik.handleChange}
-                placeholder="Client Email"
-                value={formik.values.clientemail}
-              />
-            </div>
-
-            {/* up secretary gender */}
-            <div className="col-span-3 inputfield">
-              <label htmlFor="gender">gender</label>
-
-              <select
-                name="gender"
-                id="gender"
-                className="text_input_field"
-                aria-label="Default select example"
-                value={formik.values.gender}
-                onChange={(e) => formik.setFieldValue("gender", e.target.value)}
-                required
-              >
-                <option value="male" selected>
-                  Male
-                </option>
-                <option value="female">Female</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            {/* union info note */}
-            <div className="col-span-6 inputfield">
-              <h5 className="text-xl font-extrabold">union info note </h5>
-              <Editor
-                id="note"
-                apiKey="heppko8q7wimjwb1q87ctvcpcpmwm5nckxpo4s28mnn2dgkb"
-                textareaName="note"
-                initialValue="Get Start ..."
-                onEditorChange={(content) => {
-                  formik.setFieldValue("note", content);
-                }}
-                init={{
-                  height: 350,
-                  menubar: false,
-                  plugins: [
-                    "advlist",
-                    "autolink",
-                    "lists",
-                    "link",
-                    "image",
-                    "charmap",
-                    "preview",
-                    "anchor",
-                    "searchreplace",
-                    "visualblocks",
-                    "code",
-                    "fullscreen",
-                    "insertdatetime",
-                    "media",
-                    "table",
-                    "code",
-                    "help",
-                    "wordcount",
-                  ],
-                  toolbar:
-                    "undo redo |fullscreen blocks|" +
-                    "bold italic forecolor fontsize |code link image preview| alignleft aligncenter " +
-                    "alignright alignjustify | bullist numlist outdent indent | table | " +
-                    "removeformat | help",
-                  content_style:
-                    "body { font-family:Helvetica,Arial,sans-serif; font-size: 1rem;  color: #3f3e3e; }",
-                }}
-              />
-            </div>
-
-            {/* Submit Button */}
-            <div className="col-span-6 inputFiledMiddel">
-              <button
-                type="submit"
-                className="button-62 cetificate_image_AddBtn"
-              >
-                ADD Client
-              </button>
-            </div>
+          <p className="success-message">{faqToDelete}</p>
+        </div>
+        <div className="dropdown">
+          {/* <button className="dropbtn text-end">Select</button> */}
+          <button
+            className="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-right"
+            type="button"
+          >
+            Select
+          </button>
+          <div className="dropdown-content">
+            <span className="actionBtn"> Edit</span>
+            <span className="actionBtn"> SHOW</span>
+            <span> DELETE</span>
           </div>
-        </form>
+        </div>
+        {/* ++++++========part 3 =======++++++++ */}
+        <div>
+          <div className="grid grid-cols-4 gap-5">
+            {clientList.length > 0 ? (
+              clientList.map(
+                (cl, index) => (
+                  console.log(cl),
+                  (
+                    <div
+                      key={index}
+                      className="allClinetDataShow p-3 rounded-lg"
+                    >
+                      <p className="text-center bg-[#0B6211] font-bold text-xl rounded-sm text-white">
+                        {cl.unNameBn}
+                      </p>
+                      <div className="flex justify-between mx-4 mt-3">
+                        <a
+                          href={cl.unLinkOne}
+                          target="_blank"
+                          className="bg-purple-900 p-2 rounded-lg font-medium"
+                        >
+                          GOV Link
+                        </a>
+                        <a
+                          href={cl.unLinkOne}
+                          target="_blank"
+                          className="bg-purple-900 px-5 py-2 rounded-lg font-medium"
+                        >
+                          Link-2
+                        </a>
+                      </div>
+
+                      <div className="flex justify-between mt-7">
+                        <Link
+                          to={`/dashboard/client/edit/${cl.uuid}`}
+                          className="routeLink bg-orange-400 p-2 rounded-lg font-medium"
+                        >
+                          <span className="actionBtn"> Edit</span>
+                        </Link>
+
+                        <Link
+                          to={`/dashboard/client/${cl.uuid}`}
+                          className="routeLink bg-green-400 p-2 text-black rounded-lg font-medium"
+                        >
+                          <span className="actionBtn "> SHOW</span>
+                        </Link>
+
+                        <span
+                          onClick={() => handleClickOpen(cl.uuid)}
+                          className="actionBtn  bg-rose-500 p-2 rounded-lg font-medium"
+                        >
+                          {" "}
+                          DELETE
+                        </span>
+
+                        <Dialog
+                          fullScreen={fullScreen}
+                          open={open}
+                          onClose={handleClose}
+                          aria-labelledby="responsive-dialog-title"
+                        >
+                          <DialogTitle
+                            id="responsive-dialog-title "
+                            className="icon_div"
+                          >
+                            <div style={{ textAlign: "center" }}>
+                              <BsExclamationCircle className="icon" />
+                              <h3 style={{ paddingTop: "20px" }}>
+                                Are You sure?{" "}
+                              </h3>
+                            </div>
+                          </DialogTitle>
+                          <DialogContent>
+                            <DialogContentText>
+                              Are you sure delete this client Info
+                            </DialogContentText>
+                          </DialogContent>
+                          <DialogActions>
+                            <Button
+                              autoFocus
+                              onClick={handleCancel}
+                              style={{ color: "#E16565" }}
+                            >
+                              Cancel
+                            </Button>
+                            <Button onClick={handleDelete} autoFocus>
+                              <Link
+                                to={`/dashboard/client/delete`}
+                                style={{
+                                  color: "#E16565",
+                                  textDecoration: "none",
+                                }}
+                              >
+                                Yes, delete it!
+                              </Link>
+                            </Button>
+                          </DialogActions>
+                        </Dialog>
+                      </div>
+                    </div>
+                  )
+                )
+              )
+            ) : (
+              <p
+                style={{
+                  color: "#828BB2",
+                  textAlign: "end",
+                  paddingTop: "0.9rem",
+                }}
+              >
+                No data available in table
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default CreateClinetList;
+export default ClientList;

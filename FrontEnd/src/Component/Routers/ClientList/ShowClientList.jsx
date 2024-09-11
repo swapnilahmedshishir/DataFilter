@@ -43,7 +43,6 @@ const ShowClinetList = () => {
       })
       .catch((err) => setErrorMessage(err));
   }, [id, state.port]);
-
   return (
     <div className="container mx-auto px-4 py-6 dashboard_All">
       <div>

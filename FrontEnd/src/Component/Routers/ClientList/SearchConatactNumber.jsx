@@ -28,65 +28,17 @@ const ClientList = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [clientList, setClientList] = useState([]);
   const [filteredClientList, setFilteredClientList] = useState([]);
-  const [divisions, setDivisions] = useState([]);
-  const [districts, setDistricts] = useState([]);
-  const [upazillas, setUpazillas] = useState([]);
-  const [division, setDivision] = useState("");
-  const [district, setDistrict] = useState("");
-  const [upazila, setUpazila] = useState("");
+  const [upContactNumber, setUpContactNumber] = useState("");
+
+  //   const [filteredNumber, setFilteredNumber] = useState([]);
+  //   const [isOpen, setIsOpen] = useState(false);
+  //   const [searchTerm, setSearchTerm] = useState("");
 
   const [open, setOpen] = useState(false);
   const [dataDeleteId, setDataDeleteId] = useState(null);
   const [faqToDelete, setFaqToDelete] = useState(null);
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
-
-  // Fetch divisions from API
-  const fetchDivisions = async () => {
-    try {
-      const res = await fetch("https://bdapis.com/api/v1.2/divisions");
-      const data = await res.json();
-      setDivisions(data.data);
-    } catch (error) {
-      setErrorMessage(error.message);
-    }
-  };
-
-  useEffect(() => {
-    fetchDivisions();
-  }, []);
-
-  // Fetch districts based on selected division
-  const handleDivisionChange = async (divisionName) => {
-    setDivision(divisionName);
-
-    try {
-      const res = await fetch(
-        `https://bdapis.com/api/v1.2/division/${divisionName}`
-      );
-      const data = await res.json();
-      setDistricts(data.data);
-      setUpazillas([]);
-      handleFilter();
-    } catch (error) {
-      setErrorMessage(error.message);
-    }
-  };
-
-  // Fetch upazillas based on selected district
-  const handleDistrictChange = async (districtName) => {
-    setDistrict(districtName);
-    try {
-      const res = await fetch(
-        `https://bdapis.com/api/v1.2/district/${districtName}`
-      );
-      const data = await res.json();
-      setUpazillas(data.data.upazillas);
-      // handleFilter();
-    } catch (error) {
-      setErrorMessage(error.message);
-    }
-  };
 
   // Fetch data from API
   useEffect(() => {
@@ -103,11 +55,13 @@ const ClientList = () => {
       .catch((err) => setErrorMessage(err.message));
   }, [state.port]);
 
-  // Filter clients based on division, district, and upazila
-  const handleFilter = (e) => {
-    const filteredData = clientList.filter((client) => {
-      return client.upazillaName.toLowerCase() === e?.toLowerCase();
-    });
+  // Function to filter by upContactNumber
+  const handleUpContactNumberSearch = () => {
+    const filteredData = clientList.filter((client) =>
+      client.upContactNumber
+        .toLowerCase()
+        .includes(upContactNumber.toLowerCase())
+    );
     setFilteredClientList(filteredData);
   };
 
@@ -151,16 +105,6 @@ const ClientList = () => {
     setOpen(false);
   };
 
-  const handleSectedDataRefresh = () => {
-    // Reset all filters to default empty values
-    setDivision("");
-    setDistrict("");
-    setUpazila("");
-
-    // Reset the filtered client list to show all clients
-    setFilteredClientList(clientList);
-  };
-
   return (
     <div className="container dashboard_All">
       <ToastContainer />
@@ -175,7 +119,6 @@ const ClientList = () => {
             <button className="button-62 mb-8" role="button">
               <span>New Client</span>
               <span>
-                {" "}
                 <HiPlus />
               </span>
             </button>
@@ -184,82 +127,31 @@ const ClientList = () => {
           <p className="success-message">{faqToDelete}</p>
         </div>
 
-        <div className="grid grid-cols-4 md:grid-cols-8 gap-7">
-          {/* Division */}
-          <div className="col-span-2 inputfield">
-            <label htmlFor="division">Division</label>
-            <select
-              name="division"
-              id="division"
-              className="text_input_field"
-              value={division}
-              onChange={(e) => handleDivisionChange(e.target.value)}
-            >
-              <option value="">Choose Division</option>
-              {divisions.map((dv) => (
-                <option key={dv.division} value={dv.division}>
-                  {dv.division}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* District */}
-          <div className="col-span-2 inputfield">
-            <label htmlFor="district">District</label>
-            <select
-              name="district"
-              id="district"
-              className="text_input_field"
-              value={district}
-              onChange={(e) => handleDistrictChange(e.target.value)}
-            >
-              <option value="">Choose District</option>
-              {districts.map((dist) => (
-                <option key={dist.district} value={dist.district}>
-                  {dist.district}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Upazilla */}
-          <div className="col-span-2 inputfield">
-            <label htmlFor="upazilla">Upazilla</label>
-            <select
-              name="upazilla"
-              id="upazilla"
-              className="text_input_field"
-              value={upazila}
-              onChange={(e) => {
-                setUpazila(e.target.value);
-                handleFilter(e.target.value);
-              }}
-            >
-              <option value="">Choose Upazilla</option>
-              {upazillas &&
-                upazillas.map((upa) => (
-                  <option key={upa} value={upa}>
-                    {upa}
-                  </option>
-                ))}
-            </select>
-          </div>
-          {/* all sected data refresh  */}
-          <div className="col-span-2 place-self-center">
-            <button
-              className="button-62"
-              role="button"
-              onClick={() => handleSectedDataRefresh()}
-            >
-              <span>Data Refresh</span>
-            </button>
-          </div>
+        {/* Search by upContactNumber */}
+        <div className="mb-5">
+          <label htmlFor="upContactNumber">Search by Contact Number:</label>
+          <input
+            type="text"
+            id="upContactNumber"
+            name="upContactNumber"
+            value={upContactNumber}
+            onChange={(e) => setUpContactNumber(e.target.value)}
+            className="text_input_field"
+            placeholder="Enter Contact Number"
+          />
+          <button
+            onClick={handleUpContactNumberSearch}
+            className="button-62 ml-2"
+            role="button"
+          >
+            Search
+          </button>
         </div>
 
         <p className="mb-2 text-xl">
           Total Result = {filteredClientList.length}
         </p>
+
         {/* Client List Display */}
         <div className="grid gird-cols-1 md:grid-cols-4 gap-5 ">
           {filteredClientList.length > 0 ? (
@@ -333,9 +225,7 @@ const ClientList = () => {
               </div>
             ))
           ) : (
-            <p className="text-center mt-7 text-gray-600 col-span-4">
-              No clients found.
-            </p>
+            <p>No clients found.</p>
           )}
         </div>
       </div>
