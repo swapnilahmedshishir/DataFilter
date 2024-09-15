@@ -170,9 +170,9 @@ const CreateClinetList = () => {
       {errorMessage && <div className="error-message">{errorMessage}</div>}
       <div className="form_div">
         <form onSubmit={formik.handleSubmit} className="p-2">
-          <div className="grid grid-cols-6 gap-7">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-7">
             {/* Division */}
-            <div className="col-span-2 inputfield">
+            <div className="md:col-span-2 inputfield">
               <label htmlFor="division">
                 Division <IoStarSharp className="reqired_symbole" />
               </label>
@@ -199,7 +199,7 @@ const CreateClinetList = () => {
             </div>
 
             {/* District */}
-            <div className="col-span-2 inputfield">
+            <div className="md:col-span-2 inputfield">
               <label htmlFor="district">
                 District <IoStarSharp className="reqired_symbole" />
               </label>
@@ -227,7 +227,7 @@ const CreateClinetList = () => {
             </div>
 
             {/* Upazilla */}
-            <div className="col-span-2 inputfield">
+            <div className="md:col-span-2 inputfield">
               <label htmlFor="upazilla">
                 Upazilla <IoStarSharp className="reqired_symbole" />
               </label>
@@ -252,7 +252,7 @@ const CreateClinetList = () => {
               </select>
             </div>
             {/* up Name  english*/}
-            <div className="col-span-3 inputfield">
+            <div className="md:col-span-3 inputfield">
               <label htmlFor="unNameEn">
                 union name english <IoStarSharp className="reqired_symbole" />
               </label>
@@ -271,7 +271,7 @@ const CreateClinetList = () => {
             </div>
 
             {/* up Name  bangla*/}
-            <div className="col-span-3 inputfield">
+            <div className="md:col-span-3 inputfield">
               <label htmlFor="unNameBn">
                 union name bangla <IoStarSharp className="reqired_symbole" />
               </label>
@@ -290,7 +290,7 @@ const CreateClinetList = () => {
             </div>
 
             {/* up linke1 */}
-            <div className="col-span-3 inputfield">
+            <div className="md:col-span-3 inputfield">
               <label htmlFor="unLinkOne">
                 union link 1 <IoStarSharp className="reqired_symbole" />
               </label>
@@ -308,7 +308,7 @@ const CreateClinetList = () => {
               />
             </div>
             {/* up linke2 */}
-            <div className="col-span-3 inputfield">
+            <div className="md:col-span-3 inputfield">
               <label htmlFor="unLinkTwo">union link 2 </label>
 
               {formik.touched.unLinkTwo && formik.errors.unLinkTwo && (
@@ -325,7 +325,7 @@ const CreateClinetList = () => {
             </div>
 
             {/* up secretary(সচিব) Name  */}
-            <div className="inputfield col-span-3">
+            <div className="inputfield md:col-span-3">
               <label htmlFor="upSecretaryName">
                 Union secretary name
                 <IoStarSharp className="reqired_symbole" />
@@ -349,7 +349,7 @@ const CreateClinetList = () => {
             </div>
 
             {/* up secretary Email Address  */}
-            <div className="col-span-3 inputfield">
+            <div className="md:col-span-3 inputfield">
               <label htmlFor="UpEmail">
                 email address <IoStarSharp className="reqired_symbole" />
               </label>
@@ -368,7 +368,7 @@ const CreateClinetList = () => {
             </div>
 
             {/* up secretary contact Number  */}
-            <div className="col-span-2 inputfield">
+            <div className="md:col-span-2 inputfield">
               <label htmlFor="upContactNumber">
                 contact Number <IoStarSharp className="reqired_symbole" />
               </label>
@@ -389,7 +389,7 @@ const CreateClinetList = () => {
               />
             </div>
             {/* up secretary Whatsapp Number  */}
-            <div className="col-span-2 inputfield">
+            <div className="md:col-span-2 inputfield">
               <label htmlFor="upWhatsappNumber">WhatsApp Number</label>
 
               {formik.touched.upWhatsappNumber &&
@@ -409,7 +409,7 @@ const CreateClinetList = () => {
             </div>
 
             {/* up secretary gender */}
-            <div className="col-span-2 inputfield">
+            <div className="md:col-span-2 inputfield">
               <label htmlFor="gender">gender</label>
 
               {formik.touched.gender && formik.errors.gender && (
@@ -434,7 +434,7 @@ const CreateClinetList = () => {
             </div>
 
             {/* union info note */}
-            <div className="col-span-6 inputfield">
+            <div className="md:col-span-6 inputfield">
               <h5 className="text-xl font-extrabold">union info note </h5>
 
               {formik.touched.unionInfo && formik.errors.unionInfo && (
@@ -483,7 +483,7 @@ const CreateClinetList = () => {
             </div>
 
             {/* Submit Button */}
-            <div className="col-span-6 inputFiledMiddel">
+            <div className="md:col-span-6 inputFiledMiddel">
               <button
                 type="submit"
                 className="button-62 cetificate_image_AddBtn"

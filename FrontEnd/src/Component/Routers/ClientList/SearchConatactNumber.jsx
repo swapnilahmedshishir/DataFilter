@@ -21,7 +21,7 @@ import {
 import { BsExclamationCircle } from "react-icons/bs";
 import { HiPlus } from "react-icons/hi";
 
-const ClientList = () => {
+const SearchContactNumber = () => {
   const { state } = useContext(AppContext);
   const navigate = useNavigate();
 
@@ -128,20 +128,22 @@ const ClientList = () => {
         </div>
 
         {/* Search by upContactNumber */}
-        <div className="mb-5">
-          <label htmlFor="upContactNumber">Search by Contact Number:</label>
+        <div className="mb-5 grid grid-cols-2">
+          <label htmlFor="upContactNumber" className="col-span-2">
+            Search by Contact Number:
+          </label>
           <input
             type="text"
             id="upContactNumber"
             name="upContactNumber"
             value={upContactNumber}
             onChange={(e) => setUpContactNumber(e.target.value)}
-            className="text_input_field"
+            className="text_input_field col-span-2 md:col-span-1 mb-4"
             placeholder="Enter Contact Number"
           />
           <button
             onClick={handleUpContactNumberSearch}
-            className="button-62 ml-2"
+            className="button-62 ml-2 col-span-2 md:col-span-1 md:place-self-start"
             role="button"
           >
             Search
@@ -268,4 +270,4 @@ const ClientList = () => {
   );
 };
 
-export default ClientList;
+export default SearchContactNumber;

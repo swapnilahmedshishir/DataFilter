@@ -11,6 +11,8 @@ import EditClinetList from "./Component/Routers/ClientList/EditClientList";
 
 // app provider
 import { AppProvider } from "./Dashbord/SmallComponent/AppContext";
+import SearchContactNumber from "./Component/Routers/ClientList/SearchConatactNumber";
+import SearchUnionName from "./Component/Routers/ClientList/SearchUnionName";
 
 function App() {
   return (
@@ -31,6 +33,8 @@ function App() {
 
             {/* client list  */}
             <Route path="client" element={<ClientList />} />
+            <Route path="contactNumber" element={<SearchContactNumber />} />
+            <Route path="unionName" element={<SearchUnionName />} />
             <Route path="client/create" element={<CreateClinetList />} />
             <Route path="client/:id" element={<ShowClinetList />} />
             <Route path="client/edit/:id" element={<EditClinetList />} />

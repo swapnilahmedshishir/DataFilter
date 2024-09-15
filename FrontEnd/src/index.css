@@ -233,11 +233,11 @@ ul li a {
 /* pasignation style  */
 .pagination {
   padding-top: 2rem;
+  color: white;
 }
 .pagination button {
   margin: 0rem 1rem;
   padding: 0.2rem 0.5rem;
-  color: #171450;
 }
 /* dahbord _cards style  */
 .card {
@@ -825,4 +825,16 @@ label[for="files"]:active {
   .loginForm{
     width: 100%;
   }
+  .time{
+    margin-left: 3rem;
+  }
+  .dashboard_All {
+    padding: 0px 2px;
+}
+.main_router {
+  padding: 0rem 0.5rem 4.8rem 0.5rem;
+}
+.from_div form {
+  padding: 1rem 1rem !important;
+}
 }

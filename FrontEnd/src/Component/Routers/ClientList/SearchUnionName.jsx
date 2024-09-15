@@ -28,7 +28,7 @@ const SearchUnionName = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [clientList, setClientList] = useState([]);
   const [filteredClientList, setFilteredClientList] = useState([]);
-  const [selectedUnion, setSelectedUnion] = useState(""); // For selected union name
+  const [upContactNumber, setUpContactNumber] = useState("");
 
   const [open, setOpen] = useState(false);
   const [dataDeleteId, setDataDeleteId] = useState(null);
@@ -42,8 +42,11 @@ const SearchUnionName = () => {
       .get(`${state.port}/api/admin/clientlist`)
       .then((result) => {
         if (result.data.Status) {
-          setClientList(result.data.Result);
-          setFilteredClientList(result.data.Result); // Initially display all data
+          const sortedData = result.data.Result.sort((a, b) =>
+            a.unNameEn.localeCompare(b.unNameEn)
+          );
+          setClientList(sortedData);
+          setFilteredClientList(sortedData); // Initially display sorted data
         } else {
           setErrorMessage(result.data.Error);
         }
@@ -51,10 +54,13 @@ const SearchUnionName = () => {
       .catch((err) => setErrorMessage(err.message));
   }, [state.port]);
 
-  // Filter clients based on selected union name
-  const handleUnionNameSearch = (unionName) => {
+  // Function to filter by unNameEn (search term)
+  const handleUpContactNumberSearch = (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    setUpContactNumber(searchTerm);
+
     const filteredData = clientList.filter((client) =>
-      client.unNameEn.toLowerCase().includes(unionName.toLowerCase())
+      client.unNameEn.toLowerCase().includes(searchTerm)
     );
     setFilteredClientList(filteredData);
   };
@@ -64,7 +70,6 @@ const SearchUnionName = () => {
     setOpen(true);
     setDataDeleteId(id);
   };
-
   const handleClose = () => {
     setOpen(false);
   };
@@ -121,31 +126,20 @@ const SearchUnionName = () => {
           <p className="success-message">{faqToDelete}</p>
         </div>
 
-        {/* Search by Union Name */}
+        {/* Search by unNameEn */}
         <div className="mb-5 grid grid-cols-2">
-          <label htmlFor="unionName" className="col-span-2">
+          <label htmlFor="upContactNumber" className="col-span-2">
             Search by Union Name:
           </label>
-
-          <select
-            id="unionName"
-            name="unionName"
-            value={selectedUnion}
-            onChange={(e) => {
-              setSelectedUnion(e.target.value);
-              handleUnionNameSearch(e.target.value);
-            }}
+          <input
+            type="text"
+            id="upContactNumber"
+            name="upContactNumber"
+            value={upContactNumber}
+            onChange={handleUpContactNumberSearch} // On input change, filter the data
             className="text_input_field col-span-2 md:col-span-1 mb-4"
-          >
-            <option value="">Select Union Name</option>
-            {clientList
-              .sort((a, b) => a.unNameEn.localeCompare(b.unNameEn)) // Sort by union name alphabetically
-              .map((client) => (
-                <option key={client.uuid} value={client.unNameEn}>
-                  {client.unNameEn}
-                </option>
-              ))}
-          </select>
+            placeholder="Enter Union Name"
+          />
         </div>
 
         <p className="mb-2 text-xl">
@@ -153,7 +147,7 @@ const SearchUnionName = () => {
         </p>
 
         {/* Client List Display */}
-        <div className="grid gird-cols-1 md:grid-cols-4 gap-5">
+        <div className="grid gird-cols-1 md:grid-cols-4 gap-5 ">
           {filteredClientList.length > 0 ? (
             filteredClientList.map((cl, index) => (
               <div
@@ -183,18 +177,18 @@ const SearchUnionName = () => {
                   <a
                     href={`https://wa.me/${cl.upWhatsappNumber}`}
                     target="_blank"
-                    className="bg-purple-900 px-5 py-2 rounded-lg font-medium"
+                    className="bg-purple-900 px-5 py-2 place-self-center  rounded-lg font-medium"
                   >
                     <FaWhatsapp className="text-2xl text-[#30D14E]" />
                   </a>
                   <p
-                    className="text-xl bg-purple-900 px-5 py-2 rounded-lg font-medium"
+                    className="text-xl bg-purple-900 place-self-center  px-5 py-2 rounded-lg font-medium"
                     onClick={() => window.open(`mailto:${cl.UpEmail}`)}
                   >
                     <IoIosMail className="text-2xl text-[#D65246]" />
                   </p>
                   <p
-                    className="text-xl bg-purple-900 px-5 py-2 rounded-lg font-medium"
+                    className="text-xl bg-purple-900 place-self-center  px-5 py-2 rounded-lg font-medium"
                     onClick={() => window.open(`tel:${cl.upContactNumber}`)}
                   >
                     <BiSolidPhoneCall className="text-2xl text-[#16AAE1]" />
@@ -207,12 +201,14 @@ const SearchUnionName = () => {
                   >
                     Edit
                   </Link>
+
                   <Link
                     to={`/dashboard/client/${cl.uuid}`}
                     className="routeLink bg-green-400 p-2 rounded-lg font-medium"
                   >
                     Show
                   </Link>
+
                   <span
                     onClick={() => handleClickOpen(cl.uuid)}
                     className="actionBtn bg-rose-500 p-2 rounded-lg font-medium cursor-pointer"
@@ -248,7 +244,8 @@ const SearchUnionName = () => {
         <DialogContent>
           <DialogContentText>
             <span className="flex justify-center font-bold">
-              Are You Sure Want To Delete?
+              {" "}
+              Are You Sure Want To Delete ?
             </span>
           </DialogContentText>
         </DialogContent>

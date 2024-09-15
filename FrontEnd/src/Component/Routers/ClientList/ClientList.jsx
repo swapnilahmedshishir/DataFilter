@@ -20,6 +20,7 @@ import {
 } from "@mui/material";
 import { BsExclamationCircle } from "react-icons/bs";
 import { HiPlus } from "react-icons/hi";
+import Pagination from "../../Pagination/Pagination";
 
 const ClientList = () => {
   const { state } = useContext(AppContext);
@@ -40,6 +41,10 @@ const ClientList = () => {
   const [faqToDelete, setFaqToDelete] = useState(null);
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
+  // pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginatedData, setPaginatedData] = useState([]);
+  const itemsPerPage = 10;
 
   // Fetch divisions from API
   const fetchDivisions = async () => {
@@ -95,6 +100,8 @@ const ClientList = () => {
       .then((result) => {
         if (result.data.Status) {
           setClientList(result.data.Result);
+          // pagination
+          setPaginatedData(result.data.Result.slice(0, itemsPerPage));
           setFilteredClientList(result.data.Result); // Initially display all data
         } else {
           setErrorMessage(result.data.Error);
@@ -161,6 +168,16 @@ const ClientList = () => {
     setFilteredClientList(clientList);
   };
 
+  // pagination
+  useEffect(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setPaginatedData(clientList.slice(startIndex, endIndex));
+  }, [currentPage, clientList]);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
   return (
     <div className="container dashboard_All">
       <ToastContainer />
@@ -338,6 +355,12 @@ const ClientList = () => {
             </p>
           )}
         </div>
+        <Pagination
+          totalItems={clientList.length}
+          itemsPerPage={itemsPerPage}
+          currentPage={currentPage}
+          onPageChange={handlePageChange}
+        />
       </div>
 
       {/* Confirmation Dialog for Deletion */}

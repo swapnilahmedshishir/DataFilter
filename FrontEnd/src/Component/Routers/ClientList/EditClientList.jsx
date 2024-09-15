@@ -169,9 +169,9 @@ const EditClinetList = () => {
           className="p-4"
           encType="multipart/form-data"
         >
-          <div className="grid grid-cols-6 gap-7">
+          <div className="grid grid-col-1 md:grid-cols-6 gap-7">
             {/* Division */}
-            <div className="col-span-2 inputfield">
+            <div className="md:col-span-2 inputfield">
               <label htmlFor="division">Division</label>
 
               <select
@@ -194,7 +194,7 @@ const EditClinetList = () => {
             </div>
 
             {/* District */}
-            <div className="col-span-2 inputfield">
+            <div className="md:col-span-2 inputfield">
               <label htmlFor="district">District</label>
 
               <select
@@ -217,7 +217,7 @@ const EditClinetList = () => {
             </div>
 
             {/* Upazilla */}
-            <div className="col-span-2 inputfield">
+            <div className="md:col-span-2 inputfield">
               <label htmlFor="upazilla">Upazilla</label>
 
               <select
@@ -237,7 +237,7 @@ const EditClinetList = () => {
               </select>
             </div>
             {/* up Name  english*/}
-            <div className="col-span-3 inputfield">
+            <div className="md:col-span-3 inputfield">
               <label htmlFor="unNameEn">union name english</label>
 
               <input
@@ -251,7 +251,7 @@ const EditClinetList = () => {
             </div>
 
             {/* up Name  bangla*/}
-            <div className="col-span-3 inputfield">
+            <div className="md:col-span-3 inputfield">
               <label htmlFor="unNameBn">union name bangla</label>
 
               <input
@@ -265,7 +265,7 @@ const EditClinetList = () => {
             </div>
 
             {/* up linke1 */}
-            <div className="col-span-3 inputfield">
+            <div className="md:col-span-3 inputfield">
               <label htmlFor="unLinkOne">union link 1</label>
 
               <input
@@ -278,7 +278,7 @@ const EditClinetList = () => {
               />
             </div>
             {/* up linke2 */}
-            <div className="col-span-3 inputfield">
+            <div className="md:col-span-3 inputfield">
               <label htmlFor="unLinkTwo">union link 2 </label>
 
               <input
@@ -292,7 +292,7 @@ const EditClinetList = () => {
             </div>
 
             {/* up secretary(সচিব) Name  */}
-            <div className="inputfield col-span-3">
+            <div className="inputfield md:col-span-3">
               <label htmlFor="upSecretaryName">Union secretary name</label>
 
               <input
@@ -306,7 +306,7 @@ const EditClinetList = () => {
             </div>
 
             {/* up secretary Email Address  */}
-            <div className="col-span-3 inputfield">
+            <div className="md:col-span-3 inputfield">
               <label htmlFor="UpEmail">email address</label>
 
               <input
@@ -320,7 +320,7 @@ const EditClinetList = () => {
             </div>
 
             {/* up secretary contact Number  */}
-            <div className="col-span-2 inputfield">
+            <div className="md:col-span-2 inputfield">
               <label htmlFor="upContactNumber">contact Number</label>
 
               <input
@@ -333,7 +333,7 @@ const EditClinetList = () => {
               />
             </div>
             {/* up secretary Whatsapp Number  */}
-            <div className="col-span-2 inputfield">
+            <div className="md:col-span-2 inputfield">
               <label htmlFor="upWhatsappNumber">WhatsApp Number</label>
 
               <input
@@ -347,7 +347,7 @@ const EditClinetList = () => {
             </div>
 
             {/* up secretary gender */}
-            <div className="col-span-2 inputfield">
+            <div className="md:col-span-2 inputfield">
               <label htmlFor="gender">gender</label>
 
               <select
@@ -369,7 +369,7 @@ const EditClinetList = () => {
             </div>
 
             {/* union info note */}
-            <div className="col-span-6 inputfield">
+            <div className="md:col-span-6 inputfield">
               <h5 className="text-xl font-extrabold">union info note </h5>
 
               <Editor
