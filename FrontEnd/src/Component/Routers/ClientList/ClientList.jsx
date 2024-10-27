@@ -7,7 +7,8 @@ import { AppContext } from "../../../Dashbord/SmallComponent/AppContext";
 import { FaWhatsapp } from "react-icons/fa6";
 import { BiSolidPhoneCall } from "react-icons/bi";
 import { IoIosMail } from "react-icons/io";
-
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 import {
   Dialog,
   useTheme,
@@ -21,75 +22,94 @@ import {
 import { BsExclamationCircle } from "react-icons/bs";
 import { HiPlus } from "react-icons/hi";
 import Pagination from "../../Pagination/Pagination";
+import NikoshFont from "../../../BanglaFront/Nikosh-normal";
 
 const ClientList = () => {
+  // useContext and hook
   const { state } = useContext(AppContext);
   const navigate = useNavigate();
 
   const [errorMessage, setErrorMessage] = useState(null);
   const [clientList, setClientList] = useState([]);
   const [filteredClientList, setFilteredClientList] = useState([]);
-  const [divisions, setDivisions] = useState([]);
-  const [districts, setDistricts] = useState([]);
-  const [upazillas, setUpazillas] = useState([]);
   const [division, setDivision] = useState("");
   const [district, setDistrict] = useState("");
   const [upazila, setUpazila] = useState("");
+  const [divisionName, setDivisionName] = useState("");
+  const [districtName, setDistrictName] = useState("");
+  // Pre-fetch district data for all divisions and store in a state
+  const [districtsData, setDistrictsData] = useState([]);
 
   const [open, setOpen] = useState(false);
   const [dataDeleteId, setDataDeleteId] = useState(null);
   const [faqToDelete, setFaqToDelete] = useState(null);
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
+
   // pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [paginatedData, setPaginatedData] = useState([]);
   const itemsPerPage = 10;
 
+  // all fack data
+  // State
+  const [divisions, setDivisions] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [upazillas, setUpazillas] = useState([]);
+  const [error, setError] = useState(null);
+
   // Fetch divisions from API
-  const fetchDivisions = async () => {
+  const fetchDivisions = async (url) => {
     try {
-      const res = await fetch("https://bdapis.com/api/v1.2/divisions");
+      const res = await fetch(url);
       const data = await res.json();
       setDivisions(data.data);
     } catch (error) {
-      setErrorMessage(error.message);
+      setError(error.message);
     }
   };
 
   useEffect(() => {
-    fetchDivisions();
+    const endPoint = "https://bdapi.vercel.app/api/v.1/division";
+    fetchDivisions(endPoint);
   }, []);
 
-  // Fetch districts based on selected division
-  const handleDivisionChange = async (divisionName) => {
-    setDivision(divisionName);
-
+  // Handle division change
+  const handleDivisionChange = async (divisionID) => {
+    setDivision(divisionID);
+    const selectedDivision = divisions.find((dv) => dv.id === divisionID);
+    if (selectedDivision) {
+      setDivisionName(selectedDivision.name);
+    }
     try {
       const res = await fetch(
-        `https://bdapis.com/api/v1.2/division/${divisionName}`
+        `https://bdapi.vercel.app/api/v.1/district/${divisionID}`
       );
       const data = await res.json();
       setDistricts(data.data);
       setUpazillas([]);
-      handleFilter();
     } catch (error) {
-      setErrorMessage(error.message);
+      setError(error.message);
     }
   };
 
-  // Fetch upazillas based on selected district
-  const handleDistrictChange = async (districtName) => {
-    setDistrict(districtName);
+  // Handle district change
+  const handleDistrictChange = async (districtID) => {
+    setDistrict(districtID);
+    const selectedDistictName = districts.find(
+      (dist) => dist.id === districtID
+    );
+    if (selectedDistictName) {
+      setDistrictName(selectedDistictName.name);
+    }
     try {
       const res = await fetch(
-        `https://bdapis.com/api/v1.2/district/${districtName}`
+        `https://bdapi.vercel.app/api/v.1/upazilla/${districtID}`
       );
       const data = await res.json();
-      setUpazillas(data.data.upazillas);
-      // handleFilter();
+      setUpazillas(data.data);
     } catch (error) {
-      setErrorMessage(error.message);
+      setError(error.message);
     }
   };
 
@@ -102,7 +122,7 @@ const ClientList = () => {
           setClientList(result.data.Result);
           // pagination
           setPaginatedData(result.data.Result.slice(0, itemsPerPage));
-          setFilteredClientList(result.data.Result); // Initially display all data
+          setFilteredClientList(result.data.Result);
         } else {
           setErrorMessage(result.data.Error);
         }
@@ -113,7 +133,10 @@ const ClientList = () => {
   // Filter clients based on division, district, and upazila
   const handleFilter = (e) => {
     const filteredData = clientList.filter((client) => {
-      return client.upazillaName.toLowerCase() === e?.toLowerCase();
+      return (
+        client.districtName.toLowerCase() === e?.toLowerCase() ||
+        client.upazillaName.toLowerCase() === e?.toLowerCase()
+      );
     });
     setFilteredClientList(filteredData);
   };
@@ -158,16 +181,6 @@ const ClientList = () => {
     setOpen(false);
   };
 
-  const handleSectedDataRefresh = () => {
-    // Reset all filters to default empty values
-    setDivision("");
-    setDistrict("");
-    setUpazila("");
-
-    // Reset the filtered client list to show all clients
-    setFilteredClientList(clientList);
-  };
-
   // pagination
   useEffect(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -178,30 +191,148 @@ const ClientList = () => {
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
+
+  // execl file downlode
+  function exportToCSV() {
+    let table = document.getElementById("client-table");
+    let rows = Array.from(table.rows);
+    let csvContent = rows
+      .map((row) => {
+        return Array.from(row.cells)
+          .map((cell) => {
+            // Ensure that special characters are handled properly
+            return cell.textContent.replace(/,/g, ""); // Remove any commas to avoid breaking CSV format
+          })
+          .join(",");
+      })
+      .join("\n");
+
+    // Add BOM (Byte Order Mark) to ensure proper encoding for non-ASCII characters
+    let csvBlob = new Blob(["\uFEFF" + csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+
+    let link = document.createElement("a");
+    let url = URL.createObjectURL(csvBlob);
+    link.href = url;
+    link.setAttribute("download", "ClientList.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  useEffect(() => {
+    const fetchDistrictData = async () => {
+      try {
+        const response = await fetch(
+          `https://bdapi.vercel.app/api/v.1/district`
+        );
+        const result = await response.json();
+        setDistrictsData(result.data || []);
+      } catch (error) {
+        console.error("Error fetching district data:", error);
+      }
+    };
+
+    fetchDistrictData();
+  }, []);
+
+  // Function to get division name by ID
+  const getDivisionName = (id) => {
+    const division = divisions.find((dv) => dv.id === id);
+    return division ? division.name : "Unknown Division";
+  };
+
+  // Function to get district name by ID from pre-fetched data
+  const getDistrictName = (id) => {
+    const matchingDistrict = districtsData.find((dist) => dist.id === id);
+    return matchingDistrict ? matchingDistrict.name : "Unknown District";
+  };
+
+  // Export to PDF function
+  const exportToPDF = () => {
+    const pdf = new jsPDF("p", "mm", "a4");
+    pdf.text("Client List", 15, 15);
+
+    // Load the custom Bangla font
+    pdf.addFileToVFS("Nikosh.ttf", NikoshFont); // Use the name of your converted font file
+    pdf.addFont("Nikosh.ttf", "Nikosh", "normal"); // Add the font with a label
+    pdf.setFont("Nikosh"); // Set the font to use
+    pdf.setFontSize(12);
+
+    const headers = [
+      [
+        "ID",
+        "UnionName(বাংলা)",
+        "UnionName(English)",
+        "Division",
+        "District",
+        "Upazilla",
+        "Email",
+        "Phone",
+      ],
+    ];
+
+    // Map your client data to the format required by autoTable
+    const data = filteredClientList.map((client, index) => [
+      index,
+      client.unNameBn,
+      client.unNameEn,
+      divisionName ? divisionName : getDivisionName(client.divisionName),
+      districtName ? districtName : getDistrictName(client.districtName),
+      client.upazillaName,
+      client.UpEmail,
+      client.upContactNumber,
+    ]);
+
+    // Add the table to the PDF
+    pdf.autoTable({
+      startY: 25, // Y position from where the table should start
+      head: headers,
+      body: data,
+      theme: "grid", // You can also use 'striped', 'plain', etc.
+      styles: {
+        fontSize: 6, // Font size for table content
+        font: "Nikosh", // Make sure to use the custom font here
+      },
+      headStyles: {
+        fillColor: [22, 160, 133], // Color for the header
+      },
+      margin: { top: 10 },
+    });
+
+    pdf.save("downloadClinetList.pdf");
+  };
+
   return (
     <div className="container dashboard_All">
       <ToastContainer />
-      <h1 className="dashboard_name">Client List</h1>
-      <hr />
-
       {errorMessage && <div className="error-message">{errorMessage}</div>}
-
       <div>
-        <div>
-          <Link to="/dashboard/client/create">
-            <button className="button-62 mb-8" role="button">
-              <span>New Client</span>
-              <span>
-                {" "}
-                <HiPlus />
-              </span>
-            </button>
-          </Link>
+        <div className="flex text-right justify-between sm:mt-3 sm:mb-5">
+          <div>
+            <Link to="/dashboard/client/create">
+              <button className="button-62" role="button">
+                <span>New Client</span>
+                <span>
+                  <HiPlus />
+                </span>
+              </button>
+            </Link>
+          </div>
+          {/* Button to download Excel */}
+          <button className="button-62 h-10" onClick={exportToCSV}>
+            Download CSV
+          </button>
+          {/* Button to download PDF */}
+          <button className="button-62 h-10" onClick={exportToPDF}>
+            Download PDF
+          </button>
 
           <p className="success-message">{faqToDelete}</p>
         </div>
 
-        <div className="grid grid-cols-4 md:grid-cols-8 gap-7">
+        <div className="grid grid-cols-2 md:grid-cols-8 gap-7">
           {/* Division */}
           <div className="col-span-2 inputfield">
             <label htmlFor="division">Division</label>
@@ -210,12 +341,14 @@ const ClientList = () => {
               id="division"
               className="text_input_field"
               value={division}
-              onChange={(e) => handleDivisionChange(e.target.value)}
+              onChange={(e) => {
+                handleDivisionChange(e.target.value);
+              }}
             >
               <option value="">Choose Division</option>
               {divisions.map((dv) => (
-                <option key={dv.division} value={dv.division}>
-                  {dv.division}
+                <option key={dv.id} value={dv.id}>
+                  {dv.name}
                 </option>
               ))}
             </select>
@@ -228,13 +361,16 @@ const ClientList = () => {
               name="district"
               id="district"
               className="text_input_field"
-              value={district}
-              onChange={(e) => handleDistrictChange(e.target.value)}
+              value={district} // Bind to state
+              onChange={(e) => {
+                handleDistrictChange(e.target.value);
+                handleFilter(e.target.value);
+              }}
             >
               <option value="">Choose District</option>
               {districts.map((dist) => (
-                <option key={dist.district} value={dist.district}>
-                  {dist.district}
+                <option key={dist.id} value={dist.id}>
+                  {dist.name}
                 </option>
               ))}
             </select>
@@ -247,38 +383,57 @@ const ClientList = () => {
               name="upazilla"
               id="upazilla"
               className="text_input_field"
-              value={upazila}
+              value={upazila} // Bind to state
               onChange={(e) => {
                 setUpazila(e.target.value);
                 handleFilter(e.target.value);
               }}
             >
               <option value="">Choose Upazilla</option>
-              {upazillas &&
-                upazillas.map((upa) => (
-                  <option key={upa} value={upa}>
-                    {upa}
-                  </option>
-                ))}
+              {upazillas.map((upa) => (
+                <option key={upa.id} value={upa.name}>
+                  {upa.name}
+                </option>
+              ))}
             </select>
-          </div>
-          {/* all sected data refresh  */}
-          <div className="col-span-2 place-self-center">
-            <button
-              className="button-62"
-              role="button"
-              onClick={() => handleSectedDataRefresh()}
-            >
-              <span>Data Refresh</span>
-            </button>
           </div>
         </div>
 
-        <p className="mb-2 text-xl">
+        <p className="my-7 text-xl">
           Total Result = {filteredClientList.length}
         </p>
+        {/* exel  data table  */}
+        <table id="client-table" className="hidden">
+          <thead>
+            <tr>
+              <th>UnionName Name Bangla</th>
+              <th>UnionName Name English</th>
+              <th>Division</th>
+              <th>District</th>
+              <th>Upazilla</th>
+              <th>WhatsApp</th>
+              <th>Email</th>
+              <th>Phone</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredClientList.map((cl, index) => (
+              <tr key={index}>
+                <td>{cl.unNameBn}</td>
+                <td>{cl.unNameEn}</td>
+                <td>{divisionName}</td>
+                <td>{districtName}</td>
+                <td>{cl.upazilla}</td>
+                <td>{cl.upWhatsappNumber}</td>
+                <td>{cl.UpEmail}</td>
+                <td>{cl.upContactNumber}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
         {/* Client List Display */}
-        <div className="grid gird-cols-1 md:grid-cols-4 gap-5 ">
+        <div className="grid gird-cols-1 md:grid-cols-3 gap-5 ">
           {filteredClientList.length > 0 ? (
             filteredClientList.map((cl, index) => (
               <div
@@ -356,7 +511,7 @@ const ClientList = () => {
           )}
         </div>
         <Pagination
-          totalItems={clientList.length}
+          totalItems={filteredClientList.length}
           itemsPerPage={itemsPerPage}
           currentPage={currentPage}
           onPageChange={handlePageChange}

@@ -6,7 +6,9 @@ export const AppContext = createContext();
 
 // Create a provider component
 export const AppProvider = ({ children }) => {
-  const [state, setState] = useState({ port: "http://test.tojonews.com" });
+  const [state, setState] = useState({
+    port: "https://api.upadmin.masteritsolution.com.bd",
+  });
 
   return (
     <AppContext.Provider value={{ state, setState }}>
